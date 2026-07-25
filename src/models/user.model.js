@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 const userSchema = new Schema({
     username: {
-        typeof: String,
+        type: String,
         required: true,
         unique: true,
         lowercase: true,
@@ -11,48 +11,50 @@ const userSchema = new Schema({
         index: true
     },
     email: {
-        typeof: String,
+        type: String,
         required: true,
         unique: true,
         // lowercase:true,
         trim: true,
     },
     fullName: {
-        typeof: String,
+        type: String,
         required: true,
         trim: true,
         index: true
     },
     avatar: {
-        typeof: String, //cloudinary url
+        type: String, //cloudinary url
         required: true
     },
     coverImage: {
-        typeof: String //cloudinary url
+        type: String //cloudinary url
     },
     watchHistory: [
         {
-            typeof: Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: "Video"
         }
     ],
     password: {
-        typeof: String,
+        type: String,
         required: [true, 'Password is required']
     },
     refreshToken: {
-        typeof: String,
+        type: String,
     }
 }, { timestamps: true });
 
 
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
-    this.password = bcrypt.hash(this.password, 10);
-    next();
+userSchema.pre("save", async function ( ) {
+    if (!this.isModified("password")) return ;
+    this.password = await bcrypt.hash(this.password, 10);
 
 })
+userSchema.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare(password, this.password)
 
+}
 userSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
@@ -77,12 +79,6 @@ userSchema.methods.generateRefreshToken = function () {
            expiresIn:process.env.REFRESH_TOKEN_EXPIRY
         }
     )
-}
-
-
-userSchema.methods.isPasswordCorrect = async function (password) {
-    return await bcrypt.compare(password, this.password)
-
 }
 
 
