@@ -1,0 +1,34 @@
+import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { asyncHandler } from "../utils/asynchandler.js";
+import jwt from  "jsonwebtoken"
+
+
+//question: why dont we just fetched refresh token and find the user in db and logged out
+export const verifyJWT= asyncHandler(async(req,_,next)=>{
+     try {
+         const token=  req.cookies?.accessToken || req.header
+           ("Authorization")?.replace("Bearer ","");
+   
+        if(!token){
+           throw new ApiError(401,"Unauthorized request");
+        }
+   
+       const decodedToken= await jwt.verify(token,process.env.ACCESS_TOKEN_SECRET);
+       
+       //Why removed password and refresh token?
+       const user=await User.findById(decodedToken?._id).select("-password -refreshToken")
+   
+       if(!user){
+           //NEXT_VIDEO:DISCUSS ABOUT FRONT END
+           throw new ApiError(401,"Invalid access token");
+       }
+   
+       req.user=user;
+       next();
+     } catch (error) {
+        throw new ApiError(401,error?.message||"Invalid access token")
+     }
+     
+})
+
