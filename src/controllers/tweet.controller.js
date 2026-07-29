@@ -32,7 +32,7 @@ const createTweet = asyncHandler( async(req,res) => {
          .json(
             new ApiResponse(
                 200,
-                {},
+                tweet,
                 "Tweet successfuly posted"
             )
          )
@@ -68,5 +68,49 @@ const getUserTweet = asyncHandler(async (req,res) => {
 
 })
 
+const editTweet = asyncHandler(async (req, res) => {
+     const {tweetId,newTweet}= req.body || {};
+     if(!tweetId){
+        throw new ApiError(400,"Invalid tweetId")
+     }
+     if(!newTweet){
+        throw new ApiError(400,"Same as previous")
+     }
 
-export {createTweet,getUserTweet}
+     const tweet= await Tweet.findById(tweetId);
+
+     if(!tweet){
+        throw new ApiError(400,"Tweet not found")
+     }
+
+     tweet.content=newTweet;
+     const updatedTweet= await tweet.save({ validateBeforeSave: false })
+
+     return res.status(200).json(
+        new ApiResponse(200,
+            updatedTweet,
+            "edited successfully"
+        )
+     )
+})   
+
+const deleteTweet = asyncHandler(async (req, res) => {
+     const {tweetId}= req.body || {};
+     if(!tweetId){
+        throw new ApiError(400,"Invalid tweetId")
+     }
+
+    const deletedTweet= await Tweet.findByIdAndDelete(tweetId);
+    
+    if(!deletedTweet){
+        throw new ApiError(400,"Tweet doesn't exists")
+    }
+    return res.status(200).json(
+        new ApiResponse(200,
+            deletedTweet,
+            "deleted successfully"
+        )
+     )
+})
+
+export {createTweet,getUserTweet,editTweet,deleteTweet}
