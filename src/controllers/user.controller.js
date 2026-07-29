@@ -501,5 +501,5 @@ export {
     refreshAccessToken, changeCurrentPassword,
     getCurrentUser, updateAccountDetails,
     updateUserAvatar, updateUserCoverImage,
-    getWatchHistory
+    getWatchHistory,getUserChannelProfile
 }
