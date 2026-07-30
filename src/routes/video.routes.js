@@ -18,7 +18,8 @@ router.route("/").post(verifyJWT,
             maxCount:1
          }
 
-    ],publishVideo)
+    ]),
+    publishVideo
 )
 
 export default router

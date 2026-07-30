@@ -2,6 +2,7 @@ import asyncHandler from "../utils/asynchandler.js"
 import ApiError from "../utils/ApiError.js"
 import ApiResponse from "../utils/ApiResponse.js"
 import uploadOnCloudinary from "../utils/cloudinary.js"
+import { Video } from "../models/video.model.js"
 
 const publishVideo = asyncHandler(async (req,res) => {
     const owner=req.user?._id;
@@ -22,6 +23,13 @@ const publishVideo = asyncHandler(async (req,res) => {
     const video = await uploadOnCloudinary(videoLocalPath);
     const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
     
+    if(!video){
+         throw new ApiError(500, "Failed to upload video");
+    }
+    if(!thumbnail){
+       throw new ApiError(500, "Failed to upload thumbnail");
+    }
+
     const publishedVideo = await Video.create({
         videoFile:video.url,
         thumbnail:thumbnail.url,
