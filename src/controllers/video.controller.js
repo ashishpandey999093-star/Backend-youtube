@@ -2,8 +2,17 @@ import mongoose from "mongoose"
 import asyncHandler from "../utils/asynchandler.js"
 import ApiError from "../utils/ApiError.js"
 import ApiResponse from "../utils/ApiResponse.js"
-import uploadOnCloudinary from "../utils/cloudinary.js"
+import {uploadOnCloudinary,deleteFromCloudinary} from "../utils/cloudinary.js"
 import { Video } from "../models/video.model.js"
+
+const getPublicIdFromUrl = (url) => {
+    const parts = url.split("/upload/")[1];
+
+    const withoutVersion = parts.replace(/^v\d+\//, "");
+
+    return withoutVersion.replace(/\.[^/.]+$/, "");
+};
+
 
 const publishVideo = asyncHandler(async (req, res) => {
     const owner = req.user?._id;
@@ -85,7 +94,7 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
 
     const newThumbnailLocalPath = req.file?.path;
 
-    const video = await Video.findByIdAndUpdate(videoId)
+    const video = await Video.findById(videoId)
 
  
     if (!video.owner.equals(userId)) {
@@ -123,4 +132,66 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
         )
 })
 
-export { publishVideo, getVideoById, updateVideoDetails }
+const deleteVideo = asyncHandler(async (req, res) => {
+    const userId = req.user?._id;
+    const { videoId } = req.params
+    if (!videoId || !mongoose.isValidObjectId(videoId)) {
+        throw new ApiError(400, "invalid videoId")
+    }
+
+    const video= await Video.findById(videoId);
+    if(!video){
+        throw new ApiError(404,"Video not found")
+    }
+    if (!video.owner.equals(userId)) {
+        throw new ApiError(403, "Unauthorised access")
+    }
+
+    const deletedVideo = await Video.findByIdAndDelete(videoId);
+    const publicId= getPublicIdFromUrl(deletedVideo.videoFile)
+    const cloudinaryResponse=await deleteFromCloudinary(publicId,{
+        resource_type:"video"
+    })
+    console.log(cloudinaryResponse);
+    return res.status(200).
+            json(
+                new ApiResponse(
+                    200,
+                    {deletedVideo,cloudinaryResponse},
+                    "Video deleted successfully"
+
+                )
+            )
+
+     
+})
+
+const togglePublishStatus = asyncHandler(async (req, res) => {
+    const userId = req.user?._id;
+    const { videoId } = req.params
+    if (!videoId || !mongoose.isValidObjectId(videoId)) {
+        throw new ApiError(400, "invalid videoId")
+    }
+
+    const video= await Video.findById(videoId);
+    if(!video){
+        throw new ApiError(404,"Video not found")
+    }
+    if (!video.owner.equals(userId)) {
+        throw new ApiError(403, "Unauthorised access")
+    }
+    video.isPublished=!(video.isPublished);
+    const savedVideo=await video.save({validateBeforeSave:false})
+    
+    return res.status(200).
+            json(
+                new ApiResponse(
+                    200,
+                    {savedVideo},
+                    "toggled isPublished"
+                )
+            )
+
+})
+
+export { publishVideo, getVideoById, updateVideoDetails,deleteVideo,togglePublishStatus }

@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from "cloudinary"
 import fs from "fs"
+import ApiError from "./ApiError.js";
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -13,20 +14,30 @@ const uploadOnCloudinary = async (localFilePath) => {
         //upload the file on cloudinary
         const response = await cloudinary.uploader.upload
             (localFilePath, {
-                resource_type:"auto"
+                resource_type: "auto"
             }
             )
         //file has been uploaded successfully
-         fs.unlinkSync(localFilePath)//removing the locally saved temp file as the upload operation got failed
+        fs.unlinkSync(localFilePath)//removing the locally saved temp file as the upload operation got failed
         return response;
     }
-    catch(error) {
+    catch (error) {
         fs.unlinkSync(localFilePath)//removing the locally saved temp file as the upload operation got failed
         return null
     }
 }
 
-export default uploadOnCloudinary
+const deleteFromCloudinary = async (publicId, options) => {
+    try {
+       const response=  await cloudinary.uploader.destroy(publicId,options);
+       response.result="successfully deleted from cloudinary also";
+       return response;
+    }
+    catch(error) {
+         throw new ApiError(500,error) ;
+    }
+}
+export  {uploadOnCloudinary,deleteFromCloudinary}
 
 // cloudinary.v2.uploader.upload(
 //     "https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",

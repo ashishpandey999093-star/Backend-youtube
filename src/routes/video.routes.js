@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { publishVideo,getVideoById, updateVideoDetails } from "../controllers/video.controller.js"
+import { publishVideo,getVideoById, updateVideoDetails, deleteVideo,togglePublishStatus } from "../controllers/video.controller.js"
 import  {verifyJWT}  from "../middlewares/auth.middleware.js";
 import  {upload}  from "../middlewares/multer.middleware.js"
 const router = Router();
@@ -7,6 +7,9 @@ const router = Router();
 
 
 
+router.route("/getVideo/:videoId").get(getVideoById)
+
+//secured routes
 router.route("/").post(verifyJWT,
     upload.fields([
          {
@@ -21,13 +24,12 @@ router.route("/").post(verifyJWT,
     ]),
     publishVideo
 )
-
-router.route("/get-video/:videoId").get(getVideoById)
-
-
-router.route("/update-video-details/:videoId").post(verifyJWT,
+router.route("/updateVideoDetails/:videoId").post(verifyJWT,
     upload.single([
       "thumbnail"
     ])
     ,updateVideoDetails)
+router.route("/deleteVideo/:videoId").post(verifyJWT,deleteVideo)
+router.route("/changeisPublish/:videoId").post(verifyJWT,togglePublishStatus)
+
 export default router
