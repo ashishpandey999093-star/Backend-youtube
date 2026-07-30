@@ -26,7 +26,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-export {uploadOnCloudinary}
+export default uploadOnCloudinary
 
 // cloudinary.v2.uploader.upload(
 //     "https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
