@@ -3,7 +3,8 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 import {
     addComment,
     updateComment,
-    deleteComment
+    deleteComment,
+    getVideoComments
 } from "../controllers/comment.controller.js";
 
 
@@ -12,8 +13,10 @@ const router = Router()
 router.use(verifyJWT)
 
 
-router.route("/v/:videoId").post(addComment)
+router.route("/v/:videoId").post(addComment).get(getVideoComments)
 router.route("/c/:commentId").patch(updateComment)
-router.route("/c/:commentId").delete(deleteComment)
+router.route("/c/:commentId").delete(deleteComment
+
+)
 
 export default router
