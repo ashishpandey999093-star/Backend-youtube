@@ -1,7 +1,7 @@
 import mongoose, {Schema} from "mongoose"
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
-import {video} from "../models/video.model"
-import {User} from "../models/user.model"
+import {Video} from "../models/video.model.js"
+import {User} from "../models/user.model.js"
 
 
  
