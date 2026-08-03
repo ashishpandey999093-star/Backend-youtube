@@ -12,7 +12,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const userId = req.user?._id;
     if (!userId) {
-        throw new ApiError(404, "User id required")
+        throw new ApiError(400, "User id required")
     }
 
     if (!isValidObjectId(videoId)) {
@@ -68,7 +68,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     const { commentId } = req.params
     const userId = req.user?._id;
     if (!userId) {
-        throw new ApiError(404, "User id required")
+        throw new ApiError(400, "User id required")
     }
     if (!isValidObjectId(commentId)) {
         throw new ApiError(400, "Invalid object id")
@@ -120,7 +120,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     const { tweetId } = req.params
     const userId = req.user?._id;
     if (!userId) {
-        throw new ApiError(404, "User id required")
+        throw new ApiError(400, "User id required")
     }
     if (!isValidObjectId(tweetId)) {
         throw new ApiError(400, "Invalid object id")
@@ -171,7 +171,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 const getLikedVideos = asyncHandler(async (req, res) => {
     const userId = req.user?._id;
     if (!userId) {
-        throw new ApiError(404, "User id required")
+        throw new ApiError(400, "User id required")
     }
 
     let likedVideos = await Like.aggregate([
