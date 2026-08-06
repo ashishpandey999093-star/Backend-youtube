@@ -105,11 +105,21 @@ const loginUser = asyncHandler(async (req, res) => {
     const { email, username, password } = req.body
 
     if (!username && !email) {
-        throw new ApiError(400, "username or password is required");
+        throw new ApiError(400, "username or email is required");
+    }
+
+    const loginQuery = [];
+
+    if (email) {
+        loginQuery.push({ email });
+    }
+
+    if (username) {
+        loginQuery.push({ username: username.toLowerCase() });
     }
 
     const user = await User.findOne({
-        $and: [{ email }, { username }]
+        $or: loginQuery
     })
 
     if (!user) {
@@ -129,7 +139,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: true
+        secure:  process.env.NODE_ENV === "production"
     }
 
     return res
