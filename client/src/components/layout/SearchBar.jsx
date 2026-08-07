@@ -1,30 +1,28 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-export function SearchBar() {
+function SearchBar() {
+  const [query, setQuery] = useState("");
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get("q") || "");
 
-  useEffect(() => {
-    setQuery(searchParams.get("q") || "");
-  }, [searchParams]);
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    const trimmed = query.trim();
-    navigate(trimmed ? `/?q=${encodeURIComponent(trimmed)}` : "/");
-  }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/?query=${encodeURIComponent(query)}`);
+    }
+  };
 
   return (
-    <form className="searchbar" onSubmit={handleSubmit}>
+    <form className="search-bar" onSubmit={handleSubmit}>
       <input
-        type="search"
-        placeholder="Search videos"
+        type="text"
+        placeholder="Search videos..."
         value={query}
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(e) => setQuery(e.target.value)}
       />
       <button type="submit">Search</button>
     </form>
   );
 }
+
+export default SearchBar;

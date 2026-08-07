@@ -128,6 +128,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
                     {
                         $project: {
                             fullName: 1,
+                            username: 1,
                             avatar: 1
                         }
                     }

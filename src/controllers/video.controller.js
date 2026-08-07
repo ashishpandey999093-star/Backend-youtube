@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js"
 import ApiResponse from "../utils/ApiResponse.js"
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js"
 import { Video } from "../models/video.model.js"
+import { User } from "../models/user.model.js"
 
 const getPublicIdFromUrl = (url) => {
     const parts = url.split("/upload/")[1];
@@ -166,9 +167,18 @@ const publishVideo = asyncHandler(async (req, res) => {
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
 
-    const video = await Video.findById(videoId);
+    const video = await Video.findById(videoId).populate("owner", "fullName username avatar");
     if (!video) {
         throw new ApiError(404, "Video not found")
+    }
+
+    if (req.user?._id) {
+        await User.findByIdAndUpdate(req.user._id, {
+            $pull: { watchHistory: video._id }
+        });
+        await User.findByIdAndUpdate(req.user._id, {
+            $push: { watchHistory: video._id }
+        });
     }
 
     return res.status(200).json(

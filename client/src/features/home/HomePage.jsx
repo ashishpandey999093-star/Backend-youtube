@@ -1,75 +1,43 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../../lib/api.js";
-import { VideoCard } from "../../components/video/VideoCard.jsx";
+import VideoCard from "../../components/video/VideoCard.jsx";
 
-export function HomePage() {
-  const [searchParams] = useSearchParams();
-  const query = searchParams.get("q") || "";
+function HomePage() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [statusMessage, setStatusMessage] = useState("Waiting for video data");
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("query") || "";
 
   useEffect(() => {
-    let ignore = false;
-
-    async function load() {
-      setLoading(true);
-      setError("");
-
-      try {
-        const videoResponse = await api.getVideos(query);
-
-        if (ignore) {
-          return;
-        }
-
-        setStatusMessage("Backend connected");
-        setVideos(videoResponse?.data?.docs || []);
-      } catch (err) {
-        if (!ignore) {
-          setError(err.message);
-          setStatusMessage("Backend unavailable");
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    }
-
-    load();
-
-    return () => {
-      ignore = true;
-    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    api.getVideos(query)
+      .then((response) => {
+        setVideos(response.data.data.docs);
+      })
+      .catch(() => {
+        setError("Could not load videos.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, [query]);
 
+  if (loading) return <p className="state-text">Loading videos...</p>;
+  if (error) return <p className="state-text error-text">{error}</p>;
+
   return (
-    <section className="page">
-      <div className="page-header">
-        <div>
-          <h1>Explore</h1>
-          <p className="page-subtle">
-            Basic frontend wired to your `videos` route.
-          </p>
-        </div>
-        <span className="status-pill">{statusMessage}</span>
+    <div>
+      <h2>Videos</h2>
+      <div className="video-grid" style={{ marginTop: "20px" }}>
+        {videos.map((video) => (
+          <VideoCard key={video._id} video={video} />
+        ))}
       </div>
-
-      {loading ? <div className="panel">Loading videos...</div> : null}
-      {error ? <div className="panel panel-error">{error}</div> : null}
-
-      {!loading && !error ? (
-        <div className="video-grid">
-          {videos.length ? (
-            videos.map((video) => <VideoCard key={video._id} video={video} />)
-          ) : (
-            <div className="panel">No videos found for this query.</div>
-          )}
-        </div>
-      ) : null}
-    </section>
+    </div>
   );
 }
+
+export default HomePage;

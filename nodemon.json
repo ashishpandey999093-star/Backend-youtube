@@ -1,0 +1,11 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "ignore": [
+    "client/*",
+    "*.zip",
+    "node_modules/*",
+    "public/*",
+    "temp/*"
+  ]
+}

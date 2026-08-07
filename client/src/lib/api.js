@@ -1,86 +1,28 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api/v1";
+import axios from "axios";
 
-async function request(path, options = {}) {
-  const isFormData = options.body instanceof FormData;
-  const headers = {
-    ...(isFormData ? {} : { "Content-Type": "application/json" }),
-    ...(options.headers || {})
-  };
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: "include",
-    headers,
-    ...options
-  });
-
-  const contentType = response.headers.get("content-type") || "";
-  const payload = contentType.includes("application/json")
-    ? await response.json()
-    : null;
-
-  if (!response.ok) {
-    const message =
-      payload?.message || payload?.error || "Request failed. Please try again.";
-    throw new Error(message);
-  }
-
-  return payload;
-}
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api/v1",
+  withCredentials: true
+});
 
 export const api = {
-  getVideos(search = "") {
-    const query = search ? `?query=${encodeURIComponent(search)}` : "";
-    return request(`/videos${query}`);
-  },
-  getVideoById(videoId) {
-    return request(`/videos/getVideo/${videoId}`);
+  register(formData) {
+    return apiClient.post("/users/register", formData);
   },
   login(payload) {
-    return request("/users/login", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-  },
-  register(formData) {
-    return request("/users/register", {
-      method: "POST",
-      body: formData
-    });
-  },
-  uploadVideo(formData) {
-    return request("/videos", {
-      method: "POST",
-      body: formData
-    });
-  },
-  togglePublishStatus(videoId) {
-    return request(`/videos/changeisPublish/${videoId}`, {
-      method: "POST"
-    });
-  },
-  getCurrentUser() {
-    return request("/users/current-user");
+    return apiClient.post("/users/login", payload);
   },
   logout() {
-    return request("/users/logout", {
-      method: "POST"
-    });
+    return apiClient.post("/users/logout");
   },
-  getChannel(username) {
-    return request(`/users/c/${username}`);
+  getCurrentUser() {
+    return apiClient.get("/users/current-user");
   },
-  toggleVideoLike(videoId) {
-    return request(`/likes/v/${videoId}`, {
-      method: "POST"
-    });
+  getVideos(search = "") {
+    const query = search ? `?query=${encodeURIComponent(search)}` : "";
+    return apiClient.get(`/videos${query}`);
   },
-  getComments(videoId, { page = 1, limit = 10 } = {}) {
-    return request(`/comments/v/${videoId}?page=${page}&limit=${limit}`);
-  },
-  addComment(videoId, content) {
-    return request(`/comments/v/${videoId}`, {
-      method: "POST",
-      body: JSON.stringify({ content })
-    });
+  getVideoById(videoId) {
+    return apiClient.get(`/videos/getVideo/${videoId}`);
   }
 };

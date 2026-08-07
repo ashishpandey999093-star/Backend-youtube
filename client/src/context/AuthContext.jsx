@@ -1,59 +1,49 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { api } from "../lib/api.js";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const refreshSession = useCallback(async () => {
-    try {
-      const response = await api.getCurrentUser();
-      const nextUser = response?.data || null;
-      setUser(nextUser);
-      return nextUser;
-    } catch {
-      setUser(null);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    refreshSession();
-  }, [refreshSession]);
-
-  const logout = useCallback(async () => {
-    try {
-      await api.logout();
-    } finally {
-      setUser(null);
-    }
+    api.getCurrentUser()
+      .then((response) => {
+        setUser(response.data.data);
+      })
+      .catch(() => {
+        setUser(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  const value = useMemo(
-    () => ({
-      user,
-      isAuthenticated: Boolean(user),
-      isLoading,
-      setUser,
-      refreshSession,
-      logout
-    }),
-    [isLoading, logout, refreshSession, user]
-  );
+  const login = async (payload) => {
+    const response = await api.login(payload);
+    setUser(response.data.data.user);
+    return response.data;
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const register = async (formData) => {
+    const response = await api.register(formData);
+    return response.data;
+  };
+
+  const logout = async () => {
+    await api.logout();
+    setUser(null);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-
-  return context;
+  return useContext(AuthContext);
 }

@@ -1,10 +1,9 @@
 import { Router } from "express";
-import { registerUser,loginUser,logoutUser,refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage, getUserChannelProfile, getWatchHistory } from "../controllers/user.controller.js";
+import { registerUser,loginUser,logoutUser,refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetails, updateUserAvatar, updateUserCoverImage, getUserChannelProfile, getWatchHistory, clearWatchHistory } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
-import {verifyJWT} from "../middlewares/auth.middleware.js"
+import { verifyJWT, optionalVerifyJWT } from "../middlewares/auth.middleware.js"
 
 const router = Router();
-
 router.route("/register").post(
     upload.fields([
         {
@@ -32,8 +31,9 @@ router.route("/avatar").patch(verifyJWT, upload.single("avatar") ,updateUserAvat
 
 router.route("/cover-image").patch(verifyJWT,upload.single("coverImage"),updateUserCoverImage)
 
-router.route("/c/:username").get(verifyJWT,getUserChannelProfile)
+router.route("/c/:username").get(optionalVerifyJWT,getUserChannelProfile)
 
 router.route("/history").get(verifyJWT, getWatchHistory)
+router.route("/history/clear").post(verifyJWT, clearWatchHistory)
 
 export default router;
